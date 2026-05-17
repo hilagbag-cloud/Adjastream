@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast';
 export default function AdminDashboard() {
   const { profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'kyc' | 'annonceurs' | 'stats' | 'primes' | 'settings' | 'artistes'>('kyc');
+  const [activeTab, setActiveTab] = useState<'kyc' | 'annonceurs' | 'stats' | 'primes' | 'settings' | 'artistes' | 'finance'>('kyc');
   const [pendingArtists, setPendingArtists] = useState<any[]>([]);
   const [pendingAnnonceurs, setPendingAnnonceurs] = useState<any[]>([]);
   const [verifiedArtists, setVerifiedArtists] = useState<any[]>([]);
@@ -108,9 +108,17 @@ export default function AdminDashboard() {
     setSavingSettings(true);
     try {
       if (platformSettings?.id) {
-         await supabase.from('platform_settings').update({ reward_per_stream: platformSettings.reward_per_stream, featured_artist_id: platformSettings.featured_artist_id }).eq('id', platformSettings.id);
+         await supabase.from('platform_settings').update({ 
+             reward_per_stream: platformSettings.reward_per_stream, 
+             featured_artist_id: platformSettings.featured_artist_id,
+             splash_images: platformSettings.splash_images || []
+         }).eq('id', platformSettings.id);
       } else {
-         await supabase.from('platform_settings').insert([{ reward_per_stream: platformSettings.reward_per_stream, featured_artist_id: platformSettings.featured_artist_id }]);
+         await supabase.from('platform_settings').insert([{ 
+             reward_per_stream: platformSettings.reward_per_stream, 
+             featured_artist_id: platformSettings.featured_artist_id,
+             splash_images: platformSettings.splash_images || []
+         }]);
          await fetchSettings();
       }
       toast.success('Paramètres enregistrés');
@@ -247,6 +255,12 @@ export default function AdminDashboard() {
           className={`px-4 py-2 rounded-full font-bold whitespace-nowrap transition-colors ${activeTab === 'artistes' ? 'bg-adja-yellow text-adja-dark' : 'bg-adja-light-green/30 text-adja-cream/70'}`}
         >
           Artistes Vérifiés
+        </button>
+        <button 
+          onClick={() => setActiveTab('finance')} 
+          className={`px-4 py-2 rounded-full font-bold whitespace-nowrap transition-colors ${activeTab === 'finance' ? 'bg-green-500 text-adja-dark' : 'bg-adja-light-green/30 text-adja-cream/70'}`}
+        >
+          Finance
         </button>
         <button 
           onClick={() => setActiveTab('stats')} 
@@ -444,6 +458,66 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {activeTab === 'finance' && (
+         <div className="space-y-6 max-w-2xl">
+            <div className="bg-red-500/10 p-6 rounded-xl border border-red-500/30">
+               <h2 className="text-xl font-bold text-red-500 mb-2">Zone de Danger</h2>
+               <p className="text-sm text-adja-cream/70 mb-4">Cette action remettra à zéro (0 FCFA) le portefeuille de TOUS les utilisateurs de la plateforme (Auditeurs, Artistes, Annonceurs). Cette action est irréversible.</p>
+               <button 
+                 onClick={async () => {
+                   if (window.confirm("Êtes-vous absolument sûr de vouloir réinitialiser TOUS les soldes à 0 ? Cette action est définitive.")) {
+                     try {
+                        const { error } = await supabase.rpc('reset_all_wallets');
+                        if (error) throw error;
+                        toast.success("Tous les portefeuilles ont été réinitialisés à 0.");
+                     } catch(err: any) {
+                        toast.error("Erreur: " + err.message);
+                     }
+                   }
+                 }}
+                 className="bg-red-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-red-600 transition-colors shadow-lg"
+               >
+                 Réinitialiser tous les soldes à 0
+               </button>
+            </div>
+
+            <div className="bg-adja-light-green/20 p-6 rounded-xl border border-adja-light-green">
+               <h2 className="text-xl font-bold mb-4">Créditer un compte spécifique</h2>
+               <p className="text-sm text-adja-cream/70 mb-4">Utilisez l'identifiant (ID du profil) d'un utilisateur pour ajouter des fonds à son compte manuellement.</p>
+               <form 
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    const form = e.target as HTMLFormElement;
+                    const userId = (form.elements.namedItem('userId') as HTMLInputElement).value;
+                    const amount = parseFloat((form.elements.namedItem('amount') as HTMLInputElement).value);
+                    if (!userId || !amount) return;
+                    try {
+                      const { error } = await supabase.rpc('admin_credit_user', { target_user_id: userId, amount });
+                      if (error) throw error;
+                      toast.success(`Le compte a été crédité de ${amount} FCFA.`);
+                      form.reset();
+                    } catch(err: any) {
+                      toast.error("Erreur: " + err.message);
+                    }
+                  }}
+                  className="space-y-4"
+               >
+                  <div>
+                    <label className="text-sm text-adja-cream/70 block mb-1">Identifiant de l'utilisateur (ex: 550e8400-e29b-...)</label>
+                    <input name="userId" type="text" required placeholder="Coller l'identifiant ici" className="w-full bg-adja-dark text-white p-3 rounded-lg border border-transparent focus:border-adja-yellow outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-adja-cream/70 block mb-1">Montant à créditer (en FCFA)</label>
+                    <input name="amount" type="number" required min="1" step="1" placeholder="Ex: 5000" className="w-full bg-adja-dark text-white p-3 rounded-lg border border-transparent focus:border-adja-yellow outline-none" />
+                  </div>
+                  <button type="submit" className="w-full bg-green-500 text-adja-dark font-bold py-3 rounded-xl hover:bg-green-400 transition-colors">
+                     Créditer le compte
+                  </button>
+               </form>
+            </div>
+         </div>
+      )}
+
       {activeTab === 'settings' && (
          <div className="bg-adja-light-green/20 p-6 rounded-xl border border-adja-light-green max-w-xl">
              <h2 className="text-xl font-bold mb-6">Paramètres de la Plateforme</h2>
@@ -480,6 +554,55 @@ export default function AdminDashboard() {
                     className="w-full bg-adja-dark text-white rounded-xl px-4 py-3 outline-none focus:border-adja-yellow border border-transparent transition-colors shadow-inner" 
                   />
                   <p className="text-xs text-adja-cream/50 mt-2">Ce montant sera automatiquement crédité au portefeuille de l'artiste à chaque stream valide.</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1.5 text-adja-cream/70">
+                    Images du Splash Screen (Écran d'accueil)
+                  </label>
+                  <div className="flex flex-col gap-3 mb-3">
+                     {(platformSettings?.splash_images || []).map((imgUrl: string, index: number) => (
+                        <div key={index} className="flex gap-2 items-center bg-adja-dark p-2 rounded-xl border border-adja-light-green/30">
+                           <img src={imgUrl} alt="Splash" className="w-16 h-16 object-cover rounded-lg" />
+                           <span className="flex-1 text-xs truncate font-mono text-adja-cream/50">{imgUrl}</span>
+                           <button onClick={() => {
+                              const newImages = [...(platformSettings?.splash_images || [])];
+                              newImages.splice(index, 1);
+                              setPlatformSettings({...platformSettings, splash_images: newImages});
+                           }} className="text-red-400 hover:text-red-500 p-2">
+                             <XCircle size={18} />
+                           </button>
+                        </div>
+                     ))}
+                     {(!platformSettings?.splash_images || platformSettings.splash_images.length === 0) && (
+                        <p className="text-xs text-adja-cream/50">Aucune image configurée. Utilisez les images par défaut si vide.</p>
+                     )}
+                  </div>
+                  <div className="flex gap-2">
+                     <input 
+                       type="text" 
+                       id="add-splash-url"
+                       placeholder="Entrer l'URL d'une image..." 
+                       className="flex-1 bg-adja-dark text-white rounded-xl px-4 py-2 outline-none focus:border-adja-yellow border border-transparent transition-colors text-sm" 
+                     />
+                     <button 
+                       type="button"
+                       onClick={() => {
+                         const input = document.getElementById('add-splash-url') as HTMLInputElement;
+                         if (input && input.value) {
+                           setPlatformSettings({
+                             ...platformSettings, 
+                             splash_images: [...(platformSettings?.splash_images || []), input.value]
+                           });
+                           input.value = '';
+                         }
+                       }}
+                       className="bg-adja-light-green/50 px-4 rounded-xl text-sm font-bold hover:bg-adja-light-green/70 transition-colors"
+                     >
+                       Ajouter
+                     </button>
+                  </div>
+                  <p className="text-xs text-adja-cream/50 mt-2">Vous pouvez ajouter des liens d'images externes pour le carrousel.</p>
                 </div>
 
                 <button 

@@ -139,19 +139,39 @@ export default function Profile() {
         <span className="text-adja-cream/70 text-sm mb-4">{roleText}</span>
         
         {profile && (
-          <div className="w-full bg-adja-light-green/20 border border-adja-yellow/20 p-4 rounded-xl flex items-center justify-between mb-4 shadow-xl">
-             <div>
+          <div className="w-full flex justify-between gap-4 mb-4">
+             <div className="w-1/2 bg-adja-light-green/20 border border-adja-yellow/20 p-4 rounded-xl flex flex-col shadow-xl">
                <p className="text-xs text-adja-cream/50 uppercase tracking-wider mb-1">Portefeuille</p>
                <p className="text-xl font-bold text-adja-yellow">{profile.wallet_fcfa || 0} FCFA</p>
              </div>
-             <div className="text-right cursor-pointer group" onClick={() => {
-                 if (profile.referral_code) {
-                   navigator.clipboard.writeText(profile.referral_code);
-                   toast.success('Code copié !');
-                 }
-               }}>
-               <p className="text-xs text-adja-cream/50 uppercase tracking-wider mb-1 group-hover:text-adja-cream transition-colors">Code Parrain</p>
-               <p className="text-md font-mono bg-adja-dark px-2 py-1 rounded text-white border border-adja-light-green group-hover:border-adja-yellow transition-colors">{profile.referral_code || '---'}</p>
+             <div className="w-1/2 flex flex-col gap-2">
+               <div className="bg-adja-light-green/20 border border-adja-light-green/50 p-2 rounded-lg flex items-center justify-between cursor-pointer hover:bg-adja-light-green/40 transition-colors"
+                  onClick={() => {
+                   if (user?.id) {
+                     navigator.clipboard.writeText(user.id);
+                     toast.success('Identifiant copié !');
+                   }
+                  }}
+               >
+                 <div>
+                   <p className="text-[10px] text-adja-cream/50 uppercase">Identifiant</p>
+                   <p className="text-xs font-mono truncate w-20">{user?.id?.substring(0,8)}...</p>
+                 </div>
+                 <span className="text-adja-yellow text-xs">Copier</span>
+               </div>
+               <div className="bg-adja-light-green/20 border border-adja-light-green/50 p-2 rounded-lg flex items-center justify-between cursor-pointer hover:bg-adja-light-green/40 transition-colors"
+                 onClick={() => {
+                   if (profile.referral_code) {
+                     navigator.clipboard.writeText(profile.referral_code);
+                     toast.success('Code copié !');
+                   }
+                 }}>
+                 <div>
+                   <p className="text-[10px] text-adja-cream/50 uppercase">Code Parrain</p>
+                   <p className="text-xs font-mono">{profile.referral_code || '---'}</p>
+                 </div>
+                 <span className="text-adja-yellow text-xs">Copier</span>
+               </div>
              </div>
           </div>
         )}

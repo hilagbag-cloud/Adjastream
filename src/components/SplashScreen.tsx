@@ -14,8 +14,21 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
         .select('splash_images')
         .limit(1)
         .single();
-      if (mounted && data?.splash_images) {
-        setImages(data.splash_images);
+      
+      const defaultImages = [
+         "https://images.unsplash.com/photo-1516280440502-6c2e39db0809?q=80&w=200",
+         "https://images.unsplash.com/photo-1493225457124-a1a2a5f5f9af?q=80&w=200",
+         "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=200",
+         "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=200",
+         "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=200"
+      ];
+
+      if (mounted) {
+        if (data?.splash_images && data.splash_images.length > 0) {
+          setImages(data.splash_images);
+        } else {
+          setImages(defaultImages);
+        }
       }
     };
     fetchImages();
@@ -80,18 +93,13 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
             initial={{ scale: 0.9, opacity: 0, y: 10 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 80, damping: 20, delay: 0.1 }}
-            className="relative z-10 flex flex-col items-center justify-center p-12 bg-adja-dark/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-white/5"
+            className="relative z-10 flex flex-col items-center justify-center p-6 text-center drop-shadow-2xl"
           >
-            <div className="w-20 h-20 bg-adja-yellow rounded-full flex items-center justify-center mb-6 shadow-lg shadow-adja-yellow/20">
-              <svg className="w-10 h-10 text-adja-dark" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </div>
-            <h1 className="text-4xl sm:text-5xl font-black tracking-tighter text-white">
+            <h1 className="text-5xl sm:text-6xl font-black tracking-tighter text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]">
               Adja<span className="text-adja-yellow">Stream</span>
             </h1>
-            <p className="text-adja-cream/70 font-medium text-sm mt-3 tracking-widest uppercase">
-              La voix de nos racines
+            <p className="text-white font-medium text-sm sm:text-base mt-2 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
+              Promotion de la musique Locale en Adjagbe !
             </p>
           </motion.div>
         </motion.div>

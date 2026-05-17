@@ -10,6 +10,7 @@ export default function ArtistDashboard() {
   const [profile, setProfile] = useState<any>(null);
 
   const [stats, setStats] = useState({ plays: 0, revenue: 0 });
+  const [tracks, setTracks] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -31,10 +32,12 @@ export default function ArtistDashboard() {
     const fetchTracksPlays = async () => {
       const { data, error } = await supabase
         .from('tracks')
-        .select('plays')
-        .eq('uploaded_by', user.id);
+        .select('*')
+        .eq('uploaded_by', user.id)
+        .order('plays', { ascending: false });
         
       if (!error && data) {
+        setTracks(data);
         const totalPlays = data.reduce((acc, curr) => acc + (curr.plays || 0), 0);
         setStats(prev => ({ ...prev, plays: totalPlays }));
       }
@@ -95,6 +98,29 @@ export default function ArtistDashboard() {
             <span className="font-semibold text-sm">Ajouter un nouveau titre</span>
           </div>
         </div>
+
+        {tracks.length > 0 && (
+          <div className="mt-8">
+            <h3 className="text-lg font-bold mb-4">Mes Morceaux</h3>
+            <div className="space-y-3">
+              {tracks.map((track) => (
+                <div key={track.id} className="flex items-center gap-4 bg-adja-light-green/20 p-3 rounded-xl border border-adja-light-green/30">
+                  <div className="w-12 h-12 bg-adja-dark rounded-lg overflow-hidden shrink-0">
+                    <img src={track.image_url || "https://images.unsplash.com/photo-1543807535-eceef0bc6599?w=100&q=80"} alt={track.title} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex flex-col flex-1 truncate">
+                    <span className="font-bold text-white truncate text-sm">{track.title}</span>
+                    <span className="text-xs text-adja-cream/70 truncate">{track.genre}</span>
+                  </div>
+                  <div className="flex flex-col items-end shrink-0 pl-2">
+                    <span className="font-bold text-adja-yellow">{track.plays || 0}</span>
+                    <span className="text-[10px] text-adja-cream/50 uppercase">Écoutes</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

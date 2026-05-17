@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 export default function Upload() {
   const [title, setTitle] = useState('');
   const [genre, setGenre] = useState('');
+  const [showNewGenreInput, setShowNewGenreInput] = useState(false);
   const [availableGenres, setAvailableGenres] = useState<{name: string}[]>([]);
   
   const [audioFile, setAudioFile] = useState<File | null>(null);
@@ -192,19 +193,47 @@ export default function Upload() {
           </div>
           <div>
             <label className="block text-sm font-medium mb-2 opacity-80">Genre musical</label>
-            <input 
-              type="text" 
-              value={genre}
-              onChange={(e) => setGenre(e.target.value)}
-              placeholder="Ex: Gogohoun, Afrobeat..." 
-              list="genre-list"
-              className="w-full bg-adja-cream text-adja-dark rounded-xl py-3 px-4 outline-none font-medium placeholder-adja-dark/50"
-            />
-            <datalist id="genre-list">
-              {availableGenres.map(g => (
-                <option key={g.name} value={g.name} />
-              ))}
-            </datalist>
+            {!showNewGenreInput ? (
+               <div className="flex flex-col gap-2">
+                 <select 
+                   value={genre}
+                   onChange={(e) => {
+                     if (e.target.value === 'new_genre_add') {
+                       setShowNewGenreInput(true);
+                       setGenre('');
+                     } else {
+                       setGenre(e.target.value);
+                     }
+                   }}
+                   className="w-full bg-adja-cream text-adja-dark rounded-xl py-3 px-4 outline-none font-medium placeholder-adja-dark/50"
+                 >
+                   <option value="" disabled>Sélectionner un genre</option>
+                   {availableGenres.map(g => (
+                     <option key={g.name} value={g.name}>{g.name}</option>
+                   ))}
+                   <option value="new_genre_add" className="font-bold border-t border-gray-400">➕ Ajouter un nouveau genre</option>
+                 </select>
+               </div>
+            ) : (
+               <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    value={genre}
+                    onChange={(e) => setGenre(e.target.value)}
+                    placeholder="Saisissez un nouveau genre..." 
+                    className="flex-1 bg-adja-cream text-adja-dark rounded-xl py-3 px-4 outline-none font-medium placeholder-adja-dark/50"
+                  />
+                  <button 
+                    onClick={() => {
+                       setShowNewGenreInput(false);
+                       setGenre('');
+                    }}
+                    className="bg-red-500/20 text-red-500 px-4 rounded-xl hover:bg-red-500/30 transition-colors"
+                  >
+                    Annuler
+                  </button>
+               </div>
+            )}
           </div>
         </div>
       </div>
