@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-adja-green: #113f2e;
+  --color-adja-light-green: #1c523e;
+  --color-adja-yellow: #facd35;
+  --color-adja-cream: #fbf5e6;
+  --color-adja-dark: #0a291e;
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+}
+
+@keyframes scroll-auto {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-scroll-auto {
+  animation: scroll-auto 30s linear infinite;
+  width: max-content;
+}
+
+.hover\:animate-pause:hover {
+  animation-play-state: paused;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+body {
+  background-color: var(--color-adja-green);
+  color: white;
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
