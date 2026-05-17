@@ -578,29 +578,59 @@ export default function AdminDashboard() {
                         <p className="text-xs text-adja-cream/50">Aucune image configurée. Utilisez les images par défaut si vide.</p>
                      )}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2">
                      <input 
                        type="text" 
                        id="add-splash-url"
-                       placeholder="Entrer l'URL d'une image..." 
+                       placeholder="Entrer l'URL d'une image ou uploader un fichier..." 
                        className="flex-1 bg-adja-dark text-white rounded-xl px-4 py-2 outline-none focus:border-adja-yellow border border-transparent transition-colors text-sm" 
                      />
-                     <button 
-                       type="button"
-                       onClick={() => {
-                         const input = document.getElementById('add-splash-url') as HTMLInputElement;
-                         if (input && input.value) {
-                           setPlatformSettings({
-                             ...platformSettings, 
-                             splash_images: [...(platformSettings?.splash_images || []), input.value]
-                           });
-                           input.value = '';
-                         }
-                       }}
-                       className="bg-adja-light-green/50 px-4 rounded-xl text-sm font-bold hover:bg-adja-light-green/70 transition-colors"
-                     >
-                       Ajouter
-                     </button>
+                     <div className="flex gap-2">
+                       <button 
+                         type="button"
+                         onClick={() => {
+                           const input = document.getElementById('add-splash-url') as HTMLInputElement;
+                           if (input && input.value) {
+                             setPlatformSettings({
+                               ...platformSettings, 
+                               splash_images: [...(platformSettings?.splash_images || []), input.value]
+                             });
+                             input.value = '';
+                           }
+                         }}
+                         className="flex-1 bg-adja-light-green/20 px-4 py-2 rounded-xl text-sm font-bold hover:bg-adja-light-green/40 transition-colors"
+                       >
+                         Ajouter via URL
+                       </button>
+                       
+                       <label className="flex-1 bg-adja-yellow/20 text-adja-yellow px-4 py-2 rounded-xl text-sm font-bold hover:bg-adja-yellow/30 transition-colors text-center cursor-pointer">
+                         Uploader une image
+                         <input 
+                           type="file" 
+                           accept="image/*" 
+                           className="hidden" 
+                           onChange={async (e) => {
+                             const file = e.target.files?.[0];
+                             if (!file) return;
+                             try {
+                               const ext = file.name.split('.').pop();
+                               const path = `splash_${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
+                               const { error } = await supabase.storage.from('assets').upload(path, file);
+                               if (error) throw error;
+                               const { data } = supabase.storage.from('assets').getPublicUrl(path);
+                               
+                               setPlatformSettings({
+                                 ...platformSettings, 
+                                 splash_images: [...(platformSettings?.splash_images || []), data.publicUrl]
+                               });
+                               toast.success("Image uploadée avec succès.");
+                             } catch(err: any) {
+                               toast.error("Erreur lors de l'upload: " + err.message);
+                             }
+                           }} 
+                         />
+                       </label>
+                     </div>
                   </div>
                   <p className="text-xs text-adja-cream/50 mt-2">Vous pouvez ajouter des liens d'images externes pour le carrousel.</p>
                 </div>
